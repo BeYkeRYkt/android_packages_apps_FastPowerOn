@@ -36,6 +36,13 @@ import android.content.SharedPreferences;
 import android.content.pm.PackageManager.NameNotFoundException;
 import android.net.ConnectivityManager;
 import android.net.wifi.WifiManager;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.FileReader;
+import java.io.IOException;
+
 import android.os.Bundle;
 import android.os.RemoteException;
 import android.os.Handler;
@@ -238,6 +245,7 @@ public class FastBoot extends Activity {
         };
 
         private UEventObserver mFastBootMsgObserver = new UEventObserver() {
+           		
             @Override
             public void onUEvent(UEventObserver.UEvent event) {
                 String msg = event.get("FASTBOOT_MSG");
@@ -263,16 +271,60 @@ public class FastBoot extends Activity {
             }
         };
 
+		private void ShutdownforUsb(){
+			if(JudgeUsbOnline().contains("1")) {
+			     Log.e(TAG, "observer fastboot usb event, power off the phone");
+				 shareFastBootState(true);
+				 mFastBootMsgObserver.stopObserving();
+				 Intent intent = new Intent(Intent.ACTION_REQUEST_SHUTDOWN);
+				 intent.putExtra(Intent.EXTRA_KEY_CONFIRM, false);
+				 intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+				 mFastBoot.startActivity(intent);
+
+				}
+
+		}
+
+		
+		private String JudgeUsbOnline()
+		  {
+			  String UsbOnline = "";
+			  FileInputStream is = null;
+			
+			  try {
+				  is = new FileInputStream("/sys/class/power_supply/usb/online");
+				  byte [] buffer = new byte[2048];
+				  int count = is.read(buffer);
+				  if (count > 0) {
+					  UsbOnline = new String(buffer, 0, count);
+				  }
+			  } catch (IOException e) {
+				  Log.d(TAG, "No /sys/class/power_supply/usb/online=" + e);
+			  } finally {
+				  if (is != null) {
+					  try {
+						  is.close();
+					  } catch (IOException e) {
+					  }
+				  }
+			  }
+			 
+			  Log.d(TAG, "/sys/class/power_supply/usb/online=" + UsbOnline );
+			  return UsbOnline;
+		  }
+
+			
+
         private void powerOffSystem() {
             shareFastBootState(true);
 			SystemProperties.set("sys.shutdown.requested", "fastpoeroff");
             SystemProperties.set("ctl.start", "bootanim");
             enterAirplaneMode();
             KillProcess();
-			
             SystemClock.sleep(3000);
             mPm.goToSleep(SystemClock.uptimeMillis());
 			SystemProperties.set("ctl.stop", "bootanim");
+			ShutdownforUsb();
         }
 
         private void powerOnSystem(Context context) {
