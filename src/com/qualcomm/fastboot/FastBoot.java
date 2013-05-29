@@ -273,6 +273,8 @@ public class FastBoot extends Activity {
 
 		private void ShutdownforUsb(){
 			if(JudgeUsbOnline().contains("1")) {
+
+				   Settings.Global.putInt(getContentResolver(), Settings.Global.AIRPLANE_MODE_ON, 1);
 			     Log.e(TAG, "observer fastboot usb event, power off the phone");
 				 shareFastBootState(true);
 				 mFastBootMsgObserver.stopObserving();
@@ -280,7 +282,7 @@ public class FastBoot extends Activity {
 				 intent.putExtra(Intent.EXTRA_KEY_CONFIRM, false);
 				 intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
 				 mFastBoot.startActivity(intent);
-
+           
 				}
 
 		}
