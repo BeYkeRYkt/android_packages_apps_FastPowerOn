@@ -352,6 +352,7 @@ public class FastBoot extends Activity {
             KillProcess();
             SystemClock.sleep(1000);
             mPm.goToSleep(SystemClock.uptimeMillis());
+            SystemProperties.set(PowerManager.PROPERTY_MODE_FASTBOOT, String.valueOf(true));
             mFastBoot.runOnUiThread(new Runnable() {
                 public void run() {
                     hideShutDownProgress();
@@ -375,6 +376,7 @@ public class FastBoot extends Activity {
             wl.acquire();
             SystemClock.sleep(5000);
             SystemProperties.set("service.bootanim.exit", "1");
+            SystemProperties.set(PowerManager.PROPERTY_MODE_FASTBOOT, String.valueOf(false));
             mPm.wakeUp(SystemClock.uptimeMillis());
             restoreAirplaneMode(context);
             wl.release();
