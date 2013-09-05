@@ -272,6 +272,9 @@ public class FastBoot extends Activity {
             mHandlerThread.start();
             mHandler = new Handler(mHandlerThread.getLooper(), mHandlerCallback);
             mUEventObserver.startObserving(USB_STATE_MATCH);
+            IntentFilter mAlarmFilter = new IntentFilter();
+            mAlarmFilter.addAction("com.android.deskclock.ALARM_ALERT");
+            registerReceiver(mAlarmSleepReceiver, mAlarmFilter);
 
             new Thread() {
                 @Override
@@ -316,11 +319,40 @@ public class FastBoot extends Activity {
             }
         };
 
+        @Override
+        public void onDestroy()
+        {
+            unregisterReceiver(mAlarmSleepReceiver);
+        }
+
         BroadcastReceiver sendBroadcasResult = new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {
                 Log.d(TAG, "Send Broadcast finish in " + SystemClock.elapsedRealtime());
                 sendBroadcastDone = true;
+            }
+        };
+
+        private void startFastBootOn() {
+            mUEventObserver.stopObserving();
+            powerOnSystem(mFastBoot);
+            Intent iFinish = new Intent("FinishActivity");
+            sendBroadcast(iFinish);
+        }
+
+        public BroadcastReceiver mAlarmSleepReceiver = new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                // TODO Auto-generated method stub
+                String action = intent.getAction();
+                if (action.equals("com.android.deskclock.ALARM_ALERT")) {
+                    String value;
+                    value = SystemProperties.get("service.bootanim.exit", "1");
+                    Log.d(TAG, "The fastboot state is: " + value);
+                    if("0".equals(value)){
+                        startFastBootOn();
+                    }
+                }
             }
         };
 
@@ -352,6 +384,7 @@ public class FastBoot extends Activity {
             KillProcess();
             SystemClock.sleep(1000);
             mPm.goToSleep(SystemClock.uptimeMillis());
+            SystemProperties.set(PowerManager.PROPERTY_MODE_FASTBOOT, String.valueOf(true));
             mFastBoot.runOnUiThread(new Runnable() {
                 public void run() {
                     hideShutDownProgress();
@@ -375,6 +408,7 @@ public class FastBoot extends Activity {
             wl.acquire();
             SystemClock.sleep(5000);
             SystemProperties.set("service.bootanim.exit", "1");
+            SystemProperties.set(PowerManager.PROPERTY_MODE_FASTBOOT, String.valueOf(false));
             mPm.wakeUp(SystemClock.uptimeMillis());
             restoreAirplaneMode(context);
             wl.release();
