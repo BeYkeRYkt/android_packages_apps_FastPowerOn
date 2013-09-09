@@ -539,7 +539,7 @@ public class FastBoot extends Activity {
                     if ("CONNECTED".equals(state)) {
                         mUEventObserver.stopObserving();
                         unregisterReceiver(mPowerOffReceiver);
-                        onPowerEvent("resume");
+                        onPowerEvent("usb");
                     }
                 }
             }
