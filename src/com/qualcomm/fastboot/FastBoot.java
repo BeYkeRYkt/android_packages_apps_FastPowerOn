@@ -375,26 +375,15 @@ public class FastBoot extends Activity {
         private void powerOffSystem() {
             //notify music application to pause music before kill the application
             sendBecomingNoisyIntent();
-            mFastBoot.runOnUiThread(new Runnable() {
-                public void run() {
-                    showShutDownProgress();
-                }
-            });
+            setSilentMode();
+            //Start bootanim. Shold be ready when device resumes from sleep...
+            SystemProperties.set("service.bootanim.exit", "0");
+            SystemProperties.set("ctl.start", "bootanim");
             enterAirplaneMode();
             KillProcess();
             SystemClock.sleep(1000);
             mPm.goToSleep(SystemClock.uptimeMillis());
             SystemProperties.set(PowerManager.PROPERTY_MODE_FASTBOOT, String.valueOf(true));
-            mFastBoot.runOnUiThread(new Runnable() {
-                public void run() {
-                    hideShutDownProgress();
-                }
-            });
-            // Sleep a little more
-            SystemClock.sleep(500);
-            //Start bootanim. Shold be ready when device resumes from sleep...
-            SystemProperties.set("service.bootanim.exit", "0");
-            SystemProperties.set("ctl.start", "bootanim");
         }
 
         private void powerOnSystem(Context context) {
@@ -544,5 +533,12 @@ public class FastBoot extends Activity {
                 }
             }
         };
+
+        private void setSilentMode() {
+            AudioManager mAudioManager =
+                    (AudioManager) getSystemService(Context.AUDIO_SERVICE);
+            boolean isSilent = mAudioManager.isSilentMode();
+            SystemProperties.set("persist.sys.silent", isSilent ? "1" : "0");
+        }
     }
 }
