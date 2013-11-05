@@ -46,7 +46,7 @@
     <uses-permission android:name="android.permission.VIBRATE"/>
     <uses-permission android:name="android.permission.SHUTDOWN"/>
 
-    <application android:label="FastBoot">
+    <application android:label="FastBoot" android:supportsRtl="true">
         <service android:name=".FastBoot$localSerice" android:stopWithTask="true" />
         <activity android:name="FastBoot"
                   android:theme="@android:style/Theme.Translucent.NoTitleBar" android:label="FastBoot"
