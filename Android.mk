@@ -1,3 +1,4 @@
+ifeq ($(strip $(FEATURE_Independent)),yes)
 LOCAL_PATH:= $(call my-dir)
 include $(CLEAR_VARS)
 
@@ -12,4 +13,5 @@ include $(BUILD_PACKAGE)
 
 ifeq ($(strip $(LOCAL_PACKAGE_OVERRIDES)),)
 include $(call all-makefiles-under,$(LOCAL_PATH))
+endif
 endif
